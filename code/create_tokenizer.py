@@ -9,6 +9,7 @@ def parse_args():
     parser.add_argument("--vocab_size", dest="vocab_size", type=int, required=True)
     parser.add_argument("--corpus_dir", dest="corpus_dir", type=str, required=True)
     parser.add_argument("--tokenizer_file", dest="tokenizer_file", type=str, required=True)
+    parser.add_argument("--file_limit", dest="file_limit", type=int, required=False, default=None)
 
     return parser.parse_args()
 
@@ -19,7 +20,7 @@ def load_tokenizer(filepath):
 if __name__ == "__main__":
     args = parse_args()
 
-    corpus = Corpus(args.corpus_dir)
+    corpus = Corpus(args.corpus_dir, limit = args.file_limit)
 
     tokenizer = Tokenizer(num_words = args.vocab_size)
     tokenizer.fit_on_texts(corpus)
