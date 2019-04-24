@@ -26,7 +26,7 @@ def parse_args():
     parser.add_argument("--file_limit", dest="file_limit",
                         type=int, default=1000000, required=False)
     parser.add_argument("--batch_size", dest="batch_size",
-                        type=int, default=1000000, required=False)
+                        type=int, default=100000000, required=False)
 
     return parser.parse_args()
 
