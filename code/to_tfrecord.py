@@ -92,6 +92,7 @@ if __name__ == "__main__":
     context_target_generator = generate_dataset(
         tokenizer, corpus, args.window_radius)
     for index, (X, y) in enumerate(collect_dataset(context_target_generator, args.batch_size)):
+        X = X.astype(np.int64)
         example = tf.train.Example(features=tf.train.Features(feature={
             "X_shape": tf.train.Feature(int64_list=tf.train.Int64List(value=list(X.shape))),
             "X": tf.train.Feature(int64_list=tf.train.Int64List(value=X.flatten())),
