@@ -1,2 +1,6 @@
 misc
 jupyter
+tokenizer.pickle
+*.cmd
+tfrecord
+corpus
