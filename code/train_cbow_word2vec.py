@@ -1,3 +1,8 @@
+"""
+Load dataset from TFRecord and train embedding
+"""
+
+
 from tensorflow.keras.preprocessing.text import Tokenizer
 from corpus import Corpus
 import argparse
