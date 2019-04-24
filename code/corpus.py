@@ -15,7 +15,7 @@ class Corpus:
         en = spacy.load('en')
         dir_list = os.listdir(self.dir_path)
         if self.show_progress:
-            dir_list = tqdm.tqdm(dir_list, total=self.limit) if self.limit tqdm.tqdm(dir_list)
+            dir_list = tqdm.tqdm(dir_list, total=self.limit) if self.limit else tqdm.tqdm(dir_list)
         for index, file in enumerate(dir_list):
             if self.limit and index > self.limit:
                 break

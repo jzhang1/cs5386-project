@@ -24,7 +24,7 @@ def rolling_window(a, window, step_size):
     strides = a.strides + (a.strides[-1] * step_size,)
     return np.lib.stride_tricks.as_strided(a, shape=shape, strides=strides, writeable=False)
 
-def sequence_to_cbow(seq, window_radius = 3):
+def sequence_to_cbow(seq, window_radius):
     pad_seq = np.pad(seq, (window_radius, window_radius), 'constant')
     window = rolling_window(pad_seq, window_radius * 2 + 1, 1)
     
@@ -36,23 +36,21 @@ def sequence_to_cbow(seq, window_radius = 3):
 def sliding_window_count(seq_length, window_size):
     return seq_length - window_size
 
-def generate_dataset(tokenizer, corpus, window_radius = 3, batch_size = None):
-    window_size = 2 * window_radius
-    seqs = tokenizer.texts_to_sequences(corpus)
+def generate_dataset(tokenizer, corpus, window_radius = 3):
+    for seq in tokenizer.texts_to_sequences_generator(corpus):
+        yield sequence_to_cbow(seq, window_radius)
 
-    total_size = sum(sliding_window_count(len(seq) + window_size, window_size) for seq in seqs)
+def collect_dataset(context_target_generator, batch_size = 4000000):
+    """
+    context_target_generator: Iterator[Context, Target]
+    Context: np.array2D[int]
+    Target: np.array[int]
 
-    context_array = np.zeros((total_size, window_size), dtype=np.int)
-    target_array = np.zeros(total_size, dtype=np.int)
-
-    index = 0
-    for seq in seqs:
-        context, target = sequence_to_cbow(seq, window_radius)
-        size = len(target)
-        context_array[index:index+size] = context
-        target_array[index:index+size] = target
-        index += size
-    return context_array, target_array
+    batch_size = length of numpy array to cutoff at
+    """
+    for context, target in context_target_generator:
+        context_shape = context.shape
+        target_shape = target.
 
 if __name__ == "__main__":
     args = parse_args()
