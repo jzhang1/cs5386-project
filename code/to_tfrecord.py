@@ -101,35 +101,3 @@ if __name__ == "__main__":
         outpath = os.path.join(args.out_dir, "{0}.tfrecord".format(index))
         with tf.python_io.TFRecordWriter(outpath) as tfwriter:
             tfwriter.write(example.SerializeToString())
-
-    # for tfrecord_file in os.listdir(args.out_dir):
-    #     path = os.path.join(args.out_dir, tfrecord_file)
-
-    #     dataset = tf.data.TFRecordDataset([path]).map(extract_dataset)
-
-    #     iterator = dataset.make_one_shot_iterator()
-    #     next_element = iterator.get_next()
-
-    #     with tf.Session() as sess:
-    #         try:
-    #             while True:
-    #                 data_record = sess.run(next_element)
-    #                 print(data_record)
-    #         except:
-    #             pass
-
-def extract_dataset(data_record):
-    features = {
-        "X_shape": tf.FixedLenFeature([2], tf.int64),
-        "X": tf.VarLenFeature(tf.int64),
-        "y": tf.VarLenFeature(tf.int64)
-    }
-    sample = tf.parse_single_example(data_record, features)
-    X_shape = sample["X_shape"]
-    X = tf.sparse_tensor_to_dense(sample["X"])
-    y = tf.sparse_tensor_to_dense(sample["y"])
-    # return sample
-    return {
-        "X": tf.reshape(X, X_shape),
-        "y": y
-    }
