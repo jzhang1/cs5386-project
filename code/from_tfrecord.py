@@ -1,6 +1,8 @@
 import tensorflow as tf
 import os
 
+
+
 def extract_dataset(data_record):
     features = {
         "X_shape": tf.FixedLenFeature([2], tf.int64),
@@ -11,10 +13,8 @@ def extract_dataset(data_record):
     X_shape = sample["X_shape"]
     X = tf.sparse_tensor_to_dense(sample["X"])
     y = tf.sparse_tensor_to_dense(sample["y"])
-    return {
-        "X": tf.reshape(X, X_shape),
-        "y": y
-    }
+
+    return tf.reshape(X, X_shape), y
 
 if __name__ == "__main__":
     for tfrecord_file in os.listdir("tfrecord"):
