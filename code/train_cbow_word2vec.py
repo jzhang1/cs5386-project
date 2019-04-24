@@ -61,3 +61,4 @@ if __name__ == "__main__":
     estimator = train(model, dataset)
 
     # estimator.export_saved_model
+    # https://www.tensorflow.org/guide/estimators#benefits_of_pre-made_estimators
