@@ -26,7 +26,7 @@ def parse_args():
     parser.add_argument("--file_limit", dest="file_limit",
                         type=int, default=1000000, required=False)
     parser.add_argument("--batch_size", dest="batch_size",
-                        type=int, default=100000000, required=False)
+                        type=int, default=2500000, required=False)
 
     return parser.parse_args()
 
@@ -43,9 +43,7 @@ def sequence_to_cbow(seq, window_radius):
 
     context_indices = np.arange(2 * window_radius) + np.pad(
         np.ones(window_radius, dtype=np.int), (window_radius, 0), 'constant')
-    context = window[:, context_indices]
-    target = window[:, window_radius]
-    return context, target
+    return window[:, np.append(context_indices, window_radius)]
 
 
 def sliding_window_count(seq_length, window_size):
@@ -54,34 +52,10 @@ def sliding_window_count(seq_length, window_size):
 
 def generate_dataset(tokenizer, corpus, window_radius=3):
     for seq in tokenizer.texts_to_sequences_generator(corpus):
-        yield sequence_to_cbow(seq, window_radius)
+        seq = np.array(seq, dtype=np.int)
+        for example in sequence_to_cbow(seq, window_radius):
+            yield example[:-1], example[-1]
 
-
-def collect_dataset(context_target_generator, batch_size=None):
-    """
-    context_target_generator: Iterator[Context, Target]
-    Context: np.array2D[int]
-    Target: np.array[int]
-
-    batch_size = length of numpy array to cutoff at
-    """
-    total_size = 0
-    context_list = []
-    target_list = []
-    for context, target in context_target_generator:
-        context_list.append(context)
-        target_list.append(target)
-
-        context_shape = context.shape
-        target_shape = target.shape
-        current_size = np.product(context_shape) + np.product(target_shape)
-        total_size += current_size
-        if batch_size and total_size > batch_size:
-            total_size = 0
-            yield np.concatenate(context_list, axis=0), np.concatenate(target_list)
-            context_list.clear()
-            target_list.clear()
-    yield np.concatenate(context_list, axis=0), np.concatenate(target_list)
 
 if __name__ == "__main__":
     args = parse_args()
@@ -89,17 +63,27 @@ if __name__ == "__main__":
     tokenizer = load_tokenizer(args.tokenizer_file)
     corpus = Corpus(args.corpus_dir, args.file_limit)
 
-    context_target_generator = generate_dataset(
-        tokenizer, corpus, args.window_radius)
-    for index, (X, y) in enumerate(collect_dataset(context_target_generator, args.batch_size)):
-        X = X.astype(np.int64)
-        y = y.astype(np.int64)
-        example = tf.train.Example(features=tf.train.Features(feature={
-            "X_shape": tf.train.Feature(int64_list=tf.train.Int64List(value=list(X.shape))),
-            "X": tf.train.Feature(int64_list=tf.train.Int64List(value=X.flatten())),
-            "y": tf.train.Feature(int64_list=tf.train.Int64List(value=y))
-        }))
+    tfwriter = None
+    index = 0
+    counter = 0
 
-        outpath = os.path.join(args.out_dir, "{0}.tfrecord".format(index))
-        with tf.python_io.TFRecordWriter(outpath) as tfwriter:
+    try:
+        for x, y in generate_dataset(tokenizer, corpus, args.window_radius):
+            example = tf.train.Example(features=tf.train.Features(feature={
+                "x": tf.train.Feature(int64_list=tf.train.Int64List(value=x)),
+                "y": tf.train.Feature(int64_list=tf.train.Int64List(value=[y]))
+            }))
+
+            if not tfwriter or counter > args.batch_size:
+                if tfwriter:
+                    tfwriter.close()
+                counter = 0
+                outpath = os.path.join(args.out_dir, "{0}.tfrecord".format(index))
+                tfwriter = tf.python_io.TFRecordWriter(outpath)
+                index += 1
+
             tfwriter.write(example.SerializeToString())
+            counter += 1
+    finally:
+        if tfwriter:
+            tfwriter.close()

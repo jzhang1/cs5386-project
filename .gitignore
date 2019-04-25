@@ -4,3 +4,4 @@ tokenizer.pickle
 *.cmd
 tfrecord
 corpus
+*.h5
