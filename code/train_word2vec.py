@@ -46,11 +46,12 @@ if __name__ == "__main__":
 
     tokenizer = load_tokenizer(args.tokenizer_file)
     
-    vocab_size = len(tokenizer.word_index) + 1
+    vocab_size = min(tokenizer.num_words, len(tokenizer.word_index))
     embedding_size = args.embedding_size
     window_size = args.window_size
 
     model = word2vec(vocab_size, embedding_size, window_size)
+
     dataset = load_dataset(args.dataset_dir)
 
     model.fit(dataset.repeat().batch(args.train_batch_size).make_one_shot_iterator(), steps_per_epoch = args.train_steps_per_epoch, epochs = args.train_epochs)

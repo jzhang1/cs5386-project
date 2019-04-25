@@ -36,6 +36,12 @@ def parse_args():
 
     return parser.parse_args()
 
+"""
+Hand labeled:
+1. Use pre-trained tokenizer to find the word indices of the words we labelled
+2. Load our labels as embedding weights using the word indices of the tokenizer (known words = hand labels, other words = 0)
+3. Save the embedding weights to match the tokenizer
+"""
 def labels_to_target_model(n_labelled_dimensions: int, layer_sizes: List[int], vocab_size: int):
     """
     Given the hand labelled dimensions of the target word, predict the target word
