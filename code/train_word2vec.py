@@ -7,8 +7,8 @@ import argparse
 import tensorflow as tf
 import numpy as np
 import os
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Embedding, Lambda, Dense
+from tensorflow.keras.models import Sequential, Model
+from tensorflow.keras.layers import Embedding, Lambda, Dense, Input
 from tensorflow.keras import backend as K
 from from_tfrecord import load_dataset
 from create_tokenizer import load_tokenizer
@@ -30,11 +30,12 @@ def parse_args():
     return parser.parse_args()
 
 def word2vec(vocab_size: int, embedding_size: int, window_size: int):
-    model = Sequential([
-        Embedding(input_dim = vocab_size, output_dim = embedding_size, input_length = window_size),
-        Lambda(lambda x: K.mean(x, axis=1), output_shape = (embedding_size, )),
-        Dense(vocab_size, activation="softmax")
-    ])
+    input = Input(shape = (window_size, ))
+    embedding = Embedding(input_dim = vocab_size, output_dim = embedding_size, input_length = window_size, embeddings_initializer = 'he_normal')(input)
+    lambda_layer = Lambda(lambda x: K.mean(x, axis = 1), output_shape = (embedding_size, ))(embedding)
+    output = Dense(vocab_size, activation = 'softmax', kernel_initializer = 'he_normal')(lambda_layer)
+
+    model = Model(inputs = input, outputs = output)
 
     model.compile(loss="sparse_categorical_crossentropy", optimizer="adam")
 
