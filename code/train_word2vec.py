@@ -58,7 +58,7 @@ if __name__ == "__main__":
 
     checkpoint_path = os.path.join(args.checkpoint_dir, "word2vec.{epoch:02d}-{loss:.2f}.hdf5")
     callbacks_list = [
-        EarlyStopping(monitor='loss', min_delta=0.0001, patience=100, mode='min', verbose=1, restore_best_weights=True),
+        EarlyStopping(monitor='loss', min_delta=0.0001, patience=100, mode='min', verbose=1),
         ModelCheckpoint(checkpoint_path, monitor='loss', verbose=1, save_best_only=True, mode='min', save_weights_only=True)
     ]
 
