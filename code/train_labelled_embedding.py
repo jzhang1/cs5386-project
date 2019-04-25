@@ -1,5 +1,5 @@
 """
-Train Word2Vec using CBOW model
+Train hand labelled embedding using CBOW model
 """
 
 from tensorflow.keras.preprocessing.text import Tokenizer
@@ -13,7 +13,7 @@ from tensorflow.keras import backend as K
 from from_tfrecord import load_dataset
 from create_tokenizer import load_tokenizer
 
-# python code\train_word2vec.py --tokenizer_file "tokenizer.pickle" --dataset_dir "tfrecord" --output_file "word2vec.h5"
+# python code\train_labelled_embedding.py --tokenizer_file "tokenizer.pickle" --dataset_dir "tfrecord" --output_file "word2vec.h5"
 def parse_args():
     parser = argparse.ArgumentParser()
 
@@ -29,12 +29,18 @@ def parse_args():
 
     return parser.parse_args()
 
+"""
+First predict the target word with the hand labelled data
+Labelled (15 dimensions) => Target (softmax)
+Labelled => Target + Context Embedding => Target (softmax)
+Labelled + Context Embedding => Our Embedding
+"""
 def word2vec(vocab_size: int, embedding_size: int, window_size: int):
-    model = Sequential([
-        Embedding(input_dim = vocab_size, output_dim = embedding_size, input_length = window_size),
-        Lambda(lambda x: K.mean(x, axis=1), output_shape = (embedding_size, )),
-        Dense(vocab_size, activation="softmax")
-    ])
+    model = Sequential()
+
+    model.add(Embedding(input_dim = vocab_size, output_dim = embedding_size, input_length = window_size))
+    model.add(Lambda(lambda x: K.mean(x, axis=1), output_shape = (embedding_size, )))
+    model.add(Dense(vocab_size, activation="softmax"))
 
     model.compile(loss="sparse_categorical_crossentropy", optimizer="adam")
 
