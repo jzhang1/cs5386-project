@@ -5,3 +5,5 @@ tokenizer.pickle
 tfrecord
 corpus
 *.h5
+checkpoints
+*.hdf5
