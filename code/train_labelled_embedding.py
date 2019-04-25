@@ -1,5 +1,10 @@
 """
 Train hand labelled embedding using CBOW model
+
+First predict the target word with the hand labelled data
+Labelled (15 dimensions) => Target (softmax)
+Labelled => Target + Context Embedding => Target (softmax)
+Labelled + Context Embedding => Our Embedding
 """
 
 from typings import List
@@ -31,24 +36,19 @@ def parse_args():
 
     return parser.parse_args()
 
-"""
-First predict the target word with the hand labelled data
-Labelled (15 dimensions) => Target (softmax)
-Labelled => Target + Context Embedding => Target (softmax)
-Labelled + Context Embedding => Our Embedding
-"""
-
 def labels_to_target_model(n_labelled_dimensions: int, layer_sizes: List[int], vocab_size: int):
     """
     Given the hand labelled dimensions of the target word, predict the target word
     If the target word was not in the labelled set, set all hand labelled dimensions to 0
     n_labelled_dimensions: the number of labelled dimensions
     """
-    model = Sequential()
-    model.add(Input(input_shape=(None, n_labelled_dimensions)))
+    input = Input(shape = (n_labelled_dimensions, ))
+    x = input
     for layer_size in layer_sizes:
-        model.add(Dense(layer_size, activation='relu', kernel_initializer='glorot_normal'))
-    model.add(Dense(vocab_size, activation='softmax'))
+        x = Dense(layer_size, activation = 'relu', kernel_initializer = 'he_normal')(x)
+    output = Dense(vocab_size, activation = 'softmax', kernel_initializer = 'he_normal')(x)
+
+    model = Model(inputs = input, outputs = output)
 
     model.compile(loss="sparse_categorical_crossentropy", optimizer="adam")
 
@@ -57,8 +57,7 @@ def labels_to_target_model(n_labelled_dimensions: int, layer_sizes: List[int], v
 def residual_word2vec(prior_model, embedding_size:int, window_size: int):
     """
     Given the prediction from labels_to_target_model,
-    combine this prediction with averaged Context Embedding
-    to predict the target
+    combine this prediction with averaged Context Embedding to predict the target
     prior_model: Keras model that output softmax prediction of target word
     """
     prior_output = prior_model.output
@@ -66,16 +65,16 @@ def residual_word2vec(prior_model, embedding_size:int, window_size: int):
 
     # Freeze all weights of prior model
     prior_model.trainable = False
+    for layer in prior_model.layers:
+        layer.trainable = False
     prior_model.compile()
-
-    prior_input = Input((vocab_size,))
     
-    context_input = Input((window_size, vocab_size, ))
-    embedding = Embedding(input_dim=vocab_size, output_dim=embedding_size, input_length=window_size)(context_input)
-    averaged_context = Lambda(lambda x: K.mean(x, axis=1))(embedding)
+    context_input = Input(shape = (window_size, ))
+    embedding = Embedding(input_dim = vocab_size, output_dim = embedding_size, input_length = window_size, embeddings_initializer = 'he_normal')(input)
+    averaged_context = Lambda(lambda x: K.mean(x, axis = 1), output_shape = (embedding_size, ))(embedding)
 
-    concat_layer = Concatenate()([prior_input, averaged_context])
-    output = Dense(vocab_size, activation='softmax')(concat_layer)
+    joined_input = Concatenate()([prior_output, averaged_context])
+    output = Dense(vocab_size, activation='softmax', kernel_initializer = 'he_normal')(joined_input)
 
     model = Model(inputs = [prior_model.input, context_input], output = output)
 
@@ -83,28 +82,35 @@ def residual_word2vec(prior_model, embedding_size:int, window_size: int):
 
     return model
 
-def word2vec(vocab_size: int, embedding_size: int, window_size: int):
-    model = Sequential()
+def training_phase_1():
+    pass
 
-    model.add(Embedding(input_dim = vocab_size, output_dim = embedding_size, input_length = window_size))
-    model.add(Lambda(lambda x: K.mean(x, axis=1), output_shape = (embedding_size, )))
-    model.add(Dense(vocab_size, activation="softmax"))
+def training_phase_2():
+    pass
 
-    model.compile(loss="sparse_categorical_crossentropy", optimizer="adam")
+"""
+Convert our labelled data to TFRecord
+Create labelled data tokenizer: token => labelled embedding | 0
+Create data example: [labelled embeddings] x window_size, target_id (from the trained tokenizer)
 
-    return model
 
+Training Phase 1
+Training Phase 2
+Extract embedding weights from Embedding Layer = ResidualEmbedding
+Our Embedding = Concat(Labels, ResidualEmbedding)
+"""
 if __name__ == "__main__":
-    args = parse_args()
+    pass
+    # args = parse_args()
 
-    tokenizer = load_tokenizer(args.tokenizer_file)
+    # tokenizer = load_tokenizer(args.tokenizer_file)
     
-    vocab_size = len(tokenizer.word_index) + 1
-    embedding_size = args.embedding_size
-    window_size = args.window_size
+    # vocab_size = len(tokenizer.word_index) + 1
+    # embedding_size = args.embedding_size
+    # window_size = args.window_size
 
-    model = word2vec(vocab_size, embedding_size, window_size)
-    dataset = load_dataset(args.dataset_dir)
+    # model = word2vec(vocab_size, embedding_size, window_size)
+    # dataset = load_dataset(args.dataset_dir)
 
-    model.fit(dataset.repeat().batch(args.train_batch_size).make_one_shot_iterator(), steps_per_epoch = args.train_steps_per_epoch, epochs = args.train_epochs)
-    model.save(args.output_file)
+    # model.fit(dataset.repeat().batch(args.train_batch_size).make_one_shot_iterator(), steps_per_epoch = args.train_steps_per_epoch, epochs = args.train_epochs)
+    # model.save(args.output_file)

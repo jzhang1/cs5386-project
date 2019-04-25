@@ -32,8 +32,8 @@ def parse_args():
 def word2vec(vocab_size: int, embedding_size: int, window_size: int):
     input = Input(shape = (window_size, ))
     embedding = Embedding(input_dim = vocab_size, output_dim = embedding_size, input_length = window_size, embeddings_initializer = 'he_normal')(input)
-    lambda_layer = Lambda(lambda x: K.mean(x, axis = 1), output_shape = (embedding_size, ))(embedding)
-    output = Dense(vocab_size, activation = 'softmax', kernel_initializer = 'he_normal')(lambda_layer)
+    averaged_context = Lambda(lambda x: K.mean(x, axis = 1), output_shape = (embedding_size, ))(embedding)
+    output = Dense(vocab_size, activation = 'softmax', kernel_initializer = 'he_normal')(averaged_context)
 
     model = Model(inputs = input, outputs = output)
 
