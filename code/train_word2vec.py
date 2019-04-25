@@ -46,7 +46,7 @@ if __name__ == "__main__":
 
     tokenizer = load_tokenizer(args.tokenizer_file)
     
-    vocab_size = min(tokenizer.num_words, len(tokenizer.word_index))
+    vocab_size = min(tokenizer.num_words, len(tokenizer.word_index)) + 1
     embedding_size = args.embedding_size
     window_size = args.window_size
 
