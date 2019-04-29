@@ -20,7 +20,6 @@ def parse_args():
 
     parser.add_argument("--tokenizer_file", dest="tokenizer_file", type=str, required=True)
     parser.add_argument("--dataset_dir", dest="dataset_dir", type=str, required=True)
-    parser.add_argument("--num_parallel_calls", dest="num_parallel_calls", type=int, required=False)
     parser.add_argument("--output_file", dest="output_file", type=str, required=True)
     parser.add_argument("--checkpoint_dir", dest="checkpoint_dir", type=str, required=True)
     parser.add_argument("--train_batch_size", dest="train_batch_size", type=int, default=32, required=False)

@@ -19,8 +19,3 @@ How to deal with different word senses in semantic embedding?
 Can the semantics of each word sense be captured by a semantic template of surrounding words?
 
 How to handle multiword expression such as Los Angeles?
-
----
-TODO
-1. process all labelled data into embedding form
-2. tokenizer -> int -> embedding -> predict word

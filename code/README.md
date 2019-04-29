@@ -13,3 +13,10 @@
       4. train_epochs: default is 20. Set higher number to train more
       5. embedding_size: size of the output embedding, default is 100
       6. window_size: default is 6, don't change this
+4. Extract embedding weights from hand labelled data
+   1. python extract_embedding_from_labels.py --tokenizer_file "tokenizer.pickle" --labels_file "final_labels.csv" --out_file "labels_embedding.npy"
+5. Train Labelled Embedding model
+   1. Phase 1 training
+      1. python train_labelled_embedding_1.py --tokenizer_file "tokenizer.pickle" --labels_embedding "labels_embedding.npy" --dataset_dir "tfrecord" --output_file "labelled_embedding.hdf5" --checkpoint_dir "phase1_checkpoints"
+   2. Phase 2 training
+      1. python train_labelled_embedding_2.py --tokenizer_file "tokenizer.pickle" --phase1_model "phase1.hdf5" --dataset_dir "tfrecord" --output_file "phase2.hdf5" --checkpoint_dir "phase2_checkpoints" --residual_embedding_size 73
