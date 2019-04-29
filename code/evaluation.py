@@ -7,6 +7,7 @@ import argparse
 import pickle
 import numpy as np
 from tensorflow.keras.models import load_model
+from tensorflow.keras.utils import plot_model
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -16,6 +17,7 @@ def parse_args():
     parser.add_argument('--embedding_dim', dest='embedding_dim',type=int, default=100, required=False)
     parser.add_argument('--batch_size', dest='batch_size',type=int, default=128, required=False)
     parser.add_argument('--epochs', dest='epochs',type=int, default=3, required=False)
+    parser.add_argument('--plot_model', dest='plot',type=bool, default=False, required=False)
     return parser.parse_args()
 
 args  = parse_args()
@@ -56,6 +58,9 @@ if __name__ == "__main__":
     y_test = np.array(y_test,dtype=np.int8)
 
     model = get_model()
+    if args.plot == True:
+        plot_model(model,to_file='eval_model.png',show_shapes=True,show_layer_names=False)
+
     batch_size = args.batch_size
     num_epochs = args.epochs
     x_valid, y_valid = x_train[:batch_size], y_train[:batch_size]
