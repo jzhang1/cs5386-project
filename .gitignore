@@ -1,9 +1,12 @@
 misc
 jupyter
 tokenizer.pickle
+labels_embedding.npy
 *.cmd
 tfrecord
 corpus
 *.h5
 checkpoints
 *.hdf5
+phase1_checkpoints
+phase2_checkpoints

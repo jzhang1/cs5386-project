@@ -20,7 +20,6 @@ def parse_args():
 
     parser.add_argument("--tokenizer_file", dest="tokenizer_file", type=str, required=True)
     parser.add_argument("--dataset_dir", dest="dataset_dir", type=str, required=True)
-    parser.add_argument("--num_parallel_calls", dest="num_parallel_calls", type=int, required=False)
     parser.add_argument("--output_file", dest="output_file", type=str, required=True)
     parser.add_argument("--checkpoint_dir", dest="checkpoint_dir", type=str, required=True)
     parser.add_argument("--train_batch_size", dest="train_batch_size", type=int, default=32, required=False)
@@ -58,7 +57,7 @@ if __name__ == "__main__":
 
     checkpoint_path = os.path.join(args.checkpoint_dir, "word2vec.{epoch:02d}-{loss:.2f}.hdf5")
     callbacks_list = [
-        EarlyStopping(monitor='loss', min_delta=0.0001, patience=100, mode='min', verbose=1, restore_best_weights=True),
+        EarlyStopping(monitor='loss', min_delta=0.0001, patience=100, mode='min', verbose=1),
         ModelCheckpoint(checkpoint_path, monitor='loss', verbose=1, save_best_only=True, mode='min', save_weights_only=True)
     ]
 
