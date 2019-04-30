@@ -19,6 +19,7 @@ def parse_args():
     parser.add_argument('--batch_size', dest='batch_size',type=int, default=128, required=False)
     parser.add_argument('--epochs', dest='epochs',type=int, default=3, required=False)
     parser.add_argument('--plot_model', dest='plot',type=bool, default=False, required=False)
+    parser.add_argument('--num_experiments',dest='num_experiments',type=int, default=3, required=False)
     return parser.parse_args()
 
 def extract_pickle(pkl_path):
@@ -52,7 +53,6 @@ def get_model(embedding):
     model.add(embedding)
     model.add(LSTM(100))
     model.add(Dense(1, activation='sigmoid'))
-    print(model.summary())
     model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
     return model
 
@@ -72,11 +72,9 @@ if __name__ == "__main__":
     weights_labeled = get_labeled_weights(args.labeled_path)
     embedding_v2v = get_embedding_layer(weights_v2v, embedding_dim=args.embedding_dim, input_len = args.input_length, trainable=False)
     embedding_labeled = get_embedding_layer(weights_labeled, embedding_dim=args.embedding_dim, input_len = args.input_length, trainable=False)
-    model_v2v = get_model(embedding_v2v)
-    model_labeled = get_model(embedding_labeled)
 
-    if args.plot == True:
-        plot_model(model_v2v,to_file='eval_model.png',show_shapes=True,show_layer_names=False)
+    #if args.plot == True:
+    #    plot_model(model_v2v,to_file='eval_model.png',show_shapes=True,show_layer_names=False)
 
     batch_size = args.batch_size
     num_epochs = args.epochs
@@ -84,9 +82,13 @@ if __name__ == "__main__":
     if not os.path.exists('training_history'):
         os.makedirs('training_history')
 
-    for i in range(3):
-        hist_labeled = model_labeled.fit(x_train, y_train, validation_data=(x_test, y_test), batch_size=batch_size, epochs=num_epochs)
+    for i in range(args.num_experiments):
+        model_v2v = get_model(embedding_v2v)
+        model_labeled = get_model(embedding_labeled)
+        print("Experiment {}: training the word2vec".format(i))
         hist_v2v = model_v2v.fit(x_train, y_train, validation_data=(x_test, y_test), batch_size=batch_size, epochs=num_epochs)
+        print("Experiment {}: training the labeled".format(i))
+        hist_labeled = model_labeled.fit(x_train, y_train, validation_data=(x_test, y_test), batch_size=batch_size, epochs=num_epochs)
         with open('./training_history/training_hist{}.pkl'.format(i),'wb') as f:
             pickle.dump(hist_v2v.history,f)
             pickle.dump(hist_labeled.history,f)
